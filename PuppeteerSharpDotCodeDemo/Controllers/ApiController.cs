@@ -56,5 +56,24 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
             });
             return File(pdfDataAsync, "application/pdf", $"{DateTime.Now:yyyyMMddHHmmssffff}PuppeteerTest.pdf");
         }
+
+        [HttpGet]
+        [Route("ScreenShot")]
+        public async Task<IActionResult> TestScreenShotData()
+        {
+            var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            {
+                ExecutablePath = _browserFetcher.GetExecutablePath(BrowserFetcher.DefaultRevision),
+                Headless = true
+            });
+            var page = await browser.NewPageAsync();
+            // 開啟 udemy 網頁
+            await page.GoToAsync("https://www.udemy.com/");
+            // 判斷是否載入完成
+            await page.WaitForSelectorAsync("div.browse-container");
+            // 截圖
+            var screenshotsDataAsync = await page.ScreenshotDataAsync(new ScreenshotOptions() { FullPage = true });
+            return File(screenshotsDataAsync, "image/jpeg", $"udemy{DateTime.Now:yyyyMMddHHmmssffff}PuppeteerTest.jpg");
+        }
     }
 }
