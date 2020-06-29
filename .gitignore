@@ -338,3 +338,7 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# local-chromium And Snapshot directory
+.local-chromium
+Snapshot
