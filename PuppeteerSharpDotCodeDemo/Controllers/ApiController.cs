@@ -75,5 +75,34 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
             var screenshotsDataAsync = await page.ScreenshotDataAsync(new ScreenshotOptions() { FullPage = true });
             return File(screenshotsDataAsync, "image/jpeg", $"udemy{DateTime.Now:yyyyMMddHHmmssffff}PuppeteerTest.jpg");
         }
+
+        [HttpGet]
+        [Route("ScreenShotFreeway")]
+        public async Task<IActionResult> TestScreenShotFreeway()
+        {
+            var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            {
+                ExecutablePath = _browserFetcher.GetExecutablePath(BrowserFetcher.DefaultRevision),
+                Headless = true
+            });
+            await using var page = await browser.NewPageAsync();
+            await page.GoToAsync("https://1968.freeway.gov.tw/");
+            //透過SetViewport控制視窗大小決定抓圖尺寸
+            await page.SetViewportAsync(new ViewPortOptions
+            {
+                Width = 1024,
+                Height = 768
+            });
+            foreach (var region in new[] { "N", "C", "P" })
+            {
+                // 呼叫網頁程式方法切換區域
+                await page.EvaluateExpressionAsync($"region('{region}')");
+                // 要等待網頁切換顯示完成再抓圖
+                await page.WaitForSelectorAsync("div.fwoverlay");
+                // 抓網頁畫面存檔
+                await page.ScreenshotAsync($@"{_hostingEnvironment.ContentRootPath}\Snapshot\{DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png");
+            }
+            return Ok();
+        }
     }
 }
