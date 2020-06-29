@@ -15,13 +15,25 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
     {
         private readonly IHostEnvironment _hostingEnvironment;
         private readonly BrowserFetcher _browserFetcher;
+        private readonly DirectoryInfo _snapshotInfo;
 
         public ApiController(IHostEnvironment hostingEnvironment)
         {
             _hostingEnvironment = hostingEnvironment;
+            var localChromiumInfo = new DirectoryInfo(Path.Combine(_hostingEnvironment.ContentRootPath, ".local-chromium"));
+            if (!localChromiumInfo.Exists)
+            {
+                localChromiumInfo.Create();
+            }
+
+            _snapshotInfo = new DirectoryInfo(Path.Combine(_hostingEnvironment.ContentRootPath, "Snapshot"));
+            if (!_snapshotInfo.Exists)
+            {
+                _snapshotInfo.Create();
+            }
             _browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
             {
-                Path = Path.Combine(_hostingEnvironment.ContentRootPath, ".local-chromium")
+                Path = localChromiumInfo.FullName
             });
             _browserFetcher.DownloadAsync(BrowserFetcher.DefaultRevision);
         }
@@ -100,7 +112,7 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
                 // 要等待網頁切換顯示完成再抓圖
                 await page.WaitForSelectorAsync("div.fwoverlay");
                 // 抓網頁畫面存檔
-                await page.ScreenshotAsync($@"{_hostingEnvironment.ContentRootPath}\Snapshot\{DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png");
+                await page.ScreenshotAsync(Path.Combine(_snapshotInfo.FullName, $@"{ DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png"));
             }
             return Ok();
         }
@@ -128,7 +140,7 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
                 // 要等待網頁切換顯示完成再抓圖
                 await page.WaitForSelectorAsync("div.fwoverlay");
                 // 抓網頁畫面存檔
-                await page.ScreenshotAsync($@"{_hostingEnvironment.ContentRootPath}\Snapshot\{DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png");
+                await page.ScreenshotAsync(Path.Combine(_snapshotInfo.FullName, $@"{ DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png"));
             }
             return Ok();
         }
