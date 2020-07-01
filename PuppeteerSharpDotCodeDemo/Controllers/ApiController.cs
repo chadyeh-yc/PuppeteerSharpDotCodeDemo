@@ -66,6 +66,7 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
                 FooterTemplate = footerTemplate,
                 Format = PaperFormat.A4
             });
+            await browser.CloseAsync();
             return File(pdfDataAsync, "application/pdf", $"{DateTime.Now:yyyyMMddHHmmssffff}PuppeteerTest.pdf");
         }
 
@@ -79,13 +80,20 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
                 Headless = true
             });
             var page = await browser.NewPageAsync();
-            // 開啟 udemy 網頁
-            await page.GoToAsync("https://www.udemy.com/");
+            await page.SetViewportAsync(new ViewPortOptions
+            {
+                Height = 768,
+                Width = 1024
+            });
+
+            // 開啟網頁
+            await page.GoToAsync("https://blog.miniasp.com/");
             // 判斷是否載入完成
-            await page.WaitForSelectorAsync("div.browse-container");
+            await page.WaitForSelectorAsync("section.col-md-8.content-wrapper");
             // 截圖
             var screenshotsDataAsync = await page.ScreenshotDataAsync(new ScreenshotOptions() { FullPage = true });
-            return File(screenshotsDataAsync, "image/jpeg", $"udemy{DateTime.Now:yyyyMMddHHmmssffff}PuppeteerTest.jpg");
+            await browser.CloseAsync();
+            return File(screenshotsDataAsync, "image/jpeg", $"{DateTime.Now:yyyyMMddHHmmssffff}PuppeteerTest.jpg");
         }
 
         [HttpGet]
@@ -114,34 +122,7 @@ namespace PuppeteerSharpDotCodeDemo.Controllers
                 // 抓網頁畫面存檔
                 await page.ScreenshotAsync(Path.Combine(_snapshotInfo.FullName, $@"{ DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png"));
             }
-            return Ok();
-        }
-
-        [HttpGet]
-        [Route("ScreenShotFreewayConnect")]
-        public async Task<IActionResult> TestScreenShotFreewayConnect()
-        {
-            var browser = await Puppeteer.ConnectAsync(new ConnectOptions
-            {
-                BrowserWSEndpoint = "ws://localhost:3000",
-            });
-            await using var page = await browser.NewPageAsync();
-            await page.GoToAsync("https://1968.freeway.gov.tw/");
-            //透過SetViewport控制視窗大小決定抓圖尺寸
-            await page.SetViewportAsync(new ViewPortOptions
-            {
-                Width = 1024,
-                Height = 768
-            });
-            foreach (var region in new[] { "N", "C", "P" })
-            {
-                // 呼叫網頁程式方法切換區域
-                await page.EvaluateExpressionAsync($"region('{region}')");
-                // 要等待網頁切換顯示完成再抓圖
-                await page.WaitForSelectorAsync("div.fwoverlay");
-                // 抓網頁畫面存檔
-                await page.ScreenshotAsync(Path.Combine(_snapshotInfo.FullName, $@"{ DateTime.Now:yyyyMMddHHmmss}FreewayTraffic{region}.png"));
-            }
+            await browser.CloseAsync();
             return Ok();
         }
     }
